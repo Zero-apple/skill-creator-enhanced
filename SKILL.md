@@ -453,15 +453,23 @@ If it IS a git repo, proceed to Step 3.
 
 ### Step 3: Ask User About Push
 
-Present a summary of changes to the user — what was modified/added — and ask:
+Present a summary of changes to the user — what was modified/added. Before committing, check available remote tracking branches so you can offer a choice:
 
-> "I've updated the README. There are X files changed. Would you like me to commit and push these changes to the remote repository?"
+```bash
+git -C <skill-path> remote -v
+```
 
-Wait for user confirmation before proceeding.
+- **No remote**: Ask the user if they want to set one up. If yes, ask for the remote URL (e.g., GitHub or GitLab) and add it: `git remote add origin <url>`.
+- **One remote**: Proceed with the current remote.
+- **Multiple remotes** (common: both `origin`→GitHub and `gitlab`→GitLab for the same skill): Present the options and let the user choose:
+
+  > "I see you have remotes configured: **origin** (github.com/...) and **gitlab** (gitlab.caijj.net/...). Which one would you like to push to?"
+
+Wait for user confirmation and selection before proceeding.
 
 ### Step 4: Commit and Push
 
-After user confirms:
+After user confirms (and selects a remote if multiple):
 
 1. **Stage all changes:**
    ```bash
@@ -471,11 +479,12 @@ After user confirms:
    ```bash
    git -C <skill-path> commit -m "<descriptive message>"
    ```
-3. **Push to remote** if a remote exists:
+3. **Push to the selected remote:**
    ```bash
-   git -C <skill-path> push
+   git -C <skill-path> push <selected-remote-name> <current-branch>
    ```
-4. Report the result to the user: commit hash, branch, and whether push succeeded. If push fails (no remote, auth error, branch protection), explain the issue and suggest next steps.
+   If there's only one remote, push to it directly. If the user chose a specific remote, push to that one.
+4. Report the result to the user: commit hash, branch, target remote, and whether push succeeded. If push fails (no remote, auth error, branch protection), explain the issue and suggest next steps.
 
 **Important:** If `git push` fails due to branch protection (e.g., master is protected), offer to help the user push via alternative methods (create a new branch, or ask them to temporarily disable protection via the web UI).
 
