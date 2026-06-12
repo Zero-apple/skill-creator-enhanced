@@ -95,7 +95,36 @@ Every newly created skill must include a concise README.md next to SKILL.md. The
 - Important bundled resources, if any
 - One or two realistic example prompts
 
-When updating an existing skill, update README.md in the same change if the update affects behavior, trigger conditions, workflow, bundled resources, eval files, packaging, or user-facing usage instructions. If no README.md exists, create one.
+**README 同步规则（硬性）：** SKILL.md 和 README.md 是同一份知识的两种表达（SKILL.md 给 Claude 读，README 给人读），必须保持同步。
+
+- **创建 skill 时**：SKILL.md 和 README.md 同时生成，缺一不可。
+- **修改 skill 时**：任何对 SKILL.md 行为、触发条件、工作流、资源文件、eval 配置的修改，必须在同一轮对话中更新 README.md。修改完成后，主动检查 README.md 的修改日期是否晚于或等于 SKILL.md。
+- **验证方法**：每次改完 SKILL.md 后，用以下检查确认同步：
+
+```bash
+# SKILL.md 修改时间是否晚于 README.md？（如果是，说明 README 未同步）
+test "$(stat -f %m SKILL.md)" -le "$(stat -f %m README.md)" && echo "✓ README 已同步" || echo "✗ README 可能过期，请更新"
+```
+
+**推荐的 PostToolUse Hook（自动提醒）：** 将此配置合并到 `~/.claude/settings.local.json` 的 `hooks` 字段中。每次通过 Edit/Write 修改 SKILL.md 后，自动检查 README.md 是否已同步：
+
+```json
+{
+  "hooks": {
+    "PostToolUse": [
+      {
+        "matcher": "(Edit|Write)",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "python3 -c \"\nimport json, os, sys\nraw = sys.stdin.read()\ntool_use = json.loads(raw)\ntool_input = tool_use.get('tool_input', {})\nfile_path = tool_input.get('file_path', '')\nif 'SKILL.md' in file_path:\n    skill_dir = os.path.dirname(file_path)\n    readme = os.path.join(skill_dir, 'README.md')\n    skill_mtime = os.path.getmtime(file_path)\n    readme_mtime = os.path.getmtime(readme) if os.path.exists(readme) else 0\n    if readme_mtime < skill_mtime:\n        print(f'[README_SYNC] SKILL.md 已修改 ({file_path})，但 README.md 可能未同步。请确认是否需要更新 README。')\n\""
+          }
+        ]
+      }
+    ]
+  }
+}
+```
 
 #### Progressive Disclosure
 
@@ -152,6 +181,25 @@ Output: feat(auth): implement JWT-based authentication
 ### Writing Style
 
 Try to explain to the model why things are important in lieu of heavy-handed musty MUSTs. Use theory of mind and try to make the skill general and not super-narrow to specific examples. Start by writing a draft and then look at it with fresh eyes and improve it.
+
+### Hooks vs In-Skill Recovery
+
+Claude Code supports hooks (`SessionStart`, `Stop`, `PostToolUse`, etc.) that execute commands at lifecycle events. Hooks are configured in `settings.json`, not in the skill itself. When creating a skill that needs cross-session reliability, decide between hooks and in-skill mechanisms:
+
+| Scenario | Hook | In-Skill | Recommendation |
+|----------|------|----------|---------------|
+| **Resume interrupted work** | `SessionStart` hook checks for saved state and injects recovery prompt | SKILL.md spells out "must re-read local files" as a text rule | **Both** — hook as forced injection, text rule as backup |
+| **Auto-apply permissions** | `SessionStart` hook calls MCP tool before each session | SKILL.md phase 1 explicitly calls MCP | **In-skill** — explicit control > event-driven for sequential ops |
+| **Validate output after tool use** | `PostToolUse` hook inspects tool output | SKILL.md loop step d explicitly validates | **In-skill** — sequential workflow, needs decision logic |
+| **Cleanup on skill end** | `Stop` hook removes temp files | SKILL.md final step cleans up | **Either** — lightweight cleanup suits hook, complex suits in-skill |
+
+**Rule of thumb**: If the action is part of a sequential workflow with branching decisions, use in-skill logic (file state machine, explicit checks). If the action is a standalone safety net that should fire regardless of what the model does or forgets, use a hook. For compact/context-loss recovery specifically, **hooks are the more reliable mechanism** because they fire before Claude has a chance to hallucinate based on compressed summaries.
+
+When you recommend a hook in your skill:
+
+1. Provide the exact JSON snippet the user should add to `settings.local.json`
+2. Include it in SKILL.md under the relevant section (not as an afterthought)
+3. Also keep the in-skill text rule as a backup — hooks can fail or be skipped
 
 ### Test Cases
 
