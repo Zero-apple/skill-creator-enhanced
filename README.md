@@ -23,7 +23,8 @@ Create, test, and iteratively improve Claude Code skills. The core workflow foll
 4. **Run evals** — Spawn with-skill and baseline runs in parallel, grade results, launch viewer
 5. **Human review** — User inspects outputs, leaves feedback
 6. **Improve** — Generalize from feedback, keep prompts lean, explain the why
-7. **Repeat** until satisfied, then package and deliver
+7. **Repeat** until satisfied
+8. **Git push** — README auto-updated, commit & push to remote with confirmation
 
 ## Before You Start: Is This a Large Skill?
 

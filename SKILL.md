@@ -420,6 +420,67 @@ Take `best_description` from the JSON output and update the skill's SKILL.md fro
 
 ---
 
+## Git Integration — README Update & Auto Push
+
+After the skill has been optimized to the user's satisfaction (iteration loop completed, description optimized if applicable), you MUST perform the following steps **before packaging**:
+
+### Step 1: Update README.md
+
+Always update README.md to reflect the changes made during this session. Compare against the current README.md content (read it first) and update these sections as needed:
+
+- **Core Workflow**: If the workflow changed, update the numbered steps
+- **Use When / Do Not Use When**: If trigger conditions changed
+- **Resources**: If files were added/removed/renamed
+- **Example Prompts**: Keep them fresh and representative
+- **Project name / description**: If the skill name or purpose changed
+
+If the skill didn't have a README.md before, create one using the README.md template from the section in this file. If the change was minor (typo fix, single-line tweak), briefly summarize what changed rather than rewriting the entire file.
+
+Write the updated README.md to disk.
+
+### Step 2: Git Status Check
+
+After updating README.md, check whether the skill directory is a git repository:
+
+```bash
+# Check if it's a git repo
+git -C <skill-path> status --short
+```
+
+If not a git repo (fatal: not a git repository), **stop** — no git operations apply. Inform the user the skill directory isn't version-controlled, and offer to init one for them.
+
+If it IS a git repo, proceed to Step 3.
+
+### Step 3: Ask User About Push
+
+Present a summary of changes to the user — what was modified/added — and ask:
+
+> "I've updated the README. There are X files changed. Would you like me to commit and push these changes to the remote repository?"
+
+Wait for user confirmation before proceeding.
+
+### Step 4: Commit and Push
+
+After user confirms:
+
+1. **Stage all changes:**
+   ```bash
+   git -C <skill-path> add -A
+   ```
+2. **Commit with a descriptive message** that summarizes what was done (e.g., "feat: add pagination support to SQL runner" or "fix: improve evals assertion accuracy"):
+   ```bash
+   git -C <skill-path> commit -m "<descriptive message>"
+   ```
+3. **Push to remote** if a remote exists:
+   ```bash
+   git -C <skill-path> push
+   ```
+4. Report the result to the user: commit hash, branch, and whether push succeeded. If push fails (no remote, auth error, branch protection), explain the issue and suggest next steps.
+
+**Important:** If `git push` fails due to branch protection (e.g., master is protected), offer to help the user push via alternative methods (create a new branch, or ask them to temporarily disable protection via the web UI).
+
+---
+
 ### Package and Present (only if `present_files` tool is available)
 
 Check whether you have access to the `present_files` tool. If you don't, skip this step. If you do, package the skill and present the .skill file to the user:
