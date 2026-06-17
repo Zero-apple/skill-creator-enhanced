@@ -40,7 +40,7 @@ Each of these counts as 1 point: SKILL.md will exceed 200 lines, 5+ independent 
 
 **Principle**: Start simple and upgrade as complexity grows. Don't over-engineer in the first draft.
 
-For large skills (4+ points), read `references/architecture-patterns.md` which documents six proven patterns:
+For large skills (4+ points), read `references/architecture-patterns.md` which documents eight proven patterns:
 
 - **Orchestration-Execution Separation** — Decouple workflow control from task logic
 - **File State Machine** — Survive auto-compact by persisting intermediate results
@@ -48,12 +48,16 @@ For large skills (4+ points), read `references/architecture-patterns.md` which d
 - **Overview-Detail-Review Structure** — Three-layer report organization for long outputs
 - **Query-Analysis Constraint Separation** — Split execution rules from reasoning rules
 - **Auto-Apply, Ask on Failure** — Automate prerequisites, only interrupt on failure
+- **Runtime Self-Verification** — Prefer deterministic checks (count/reconcile/continuity) over model self-assessment when the output has checkable invariants and a wrong answer is costly
+- **Live-Data Grounding** — Probe data shape (enums/schema) at runtime before use and mark the source of each claim, when the skill asserts facts from dynamic/external data
+
+The last two are **property-triggered**: apply them whenever the property holds, even if the overall complexity score is below 4.
 
 ## Resources
 
 - `SKILL.md` — Core instructions: when to trigger, how to run the create-test-review-improve loop
 - `references/schemas.md` — JSON schemas for evals.json, grading.json, and benchmark.json
-- `references/architecture-patterns.md` — **Architecture patterns for large/complex skills** (orchestration-execution separation, file state machines, incremental report assembly). Includes a complexity scorecard for deciding when these patterns apply.
+- `references/architecture-patterns.md` — **Architecture patterns for large/complex skills** (orchestration-execution separation, file state machines, incremental report assembly, runtime self-verification, live-data grounding). Includes a complexity scorecard for deciding when these patterns apply.
 - `agents/grader.md` — Subagent instructions for evaluating assertions against outputs
 - `agents/comparator.md` — Subagent instructions for blind A/B comparison
 - `agents/analyzer.md` — Subagent instructions for analyzing benchmark results

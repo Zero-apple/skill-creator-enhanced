@@ -110,7 +110,7 @@ These word counts are approximate and you can feel free to go longer if needed.
 - Keep SKILL.md under 500 lines; if you're approaching this limit, add an additional layer of hierarchy along with clear pointers about where the model using the skill should go next to follow up.
 - Reference files clearly from SKILL.md with guidance on when to read them
 - For large reference files (>300 lines), include a table of contents
-- When creating a skill that scores 4+ on the complexity scale (multi-step, external dependencies, state tracking, cross-turn execution), read `references/architecture-patterns.md` for proven patterns like orchestration-execution separation and file state machines.
+- When creating a skill that scores 4+ on the complexity scale (multi-step, external dependencies, state tracking, cross-turn execution), read `references/architecture-patterns.md` for proven patterns like orchestration-execution separation and file state machines. It also covers two property-triggered patterns worth applying even below score 4: runtime self-verification (deterministic checks over model self-assessment) when the output has checkable invariants and a wrong answer is costly, and live-data grounding (probe shape before use, mark sources) when the skill asserts facts from dynamic/external data.
 
 **Domain organization**: When a skill supports multiple domains/frameworks, organize by variant:
 ```
@@ -551,7 +551,7 @@ The agents/ directory contains instructions for specialized subagents. Read them
 
 The references/ directory has additional documentation:
 - `references/schemas.md` — JSON structures for evals.json, grading.json, etc.
-- `references/architecture-patterns.md` — Architecture patterns for large/complex skills (orchestration-execution separation, file state machines, incremental report assembly). Read when the skill scores 4+ on the complexity scale.
+- `references/architecture-patterns.md` — Architecture patterns for large/complex skills (orchestration-execution separation, file state machines, incremental report assembly, runtime self-verification, live-data grounding). Read when the skill scores 4+ on the complexity scale, or when a single property-triggered pattern (self-verification, grounding) applies.
 
 ---
 
